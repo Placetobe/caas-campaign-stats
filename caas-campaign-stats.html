@@ -39,9 +39,27 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
           value: null
         },
 
+        loanCampaign: {
+          type: Boolean,
+          computed: '_computeLoanCampaign(_campaignTypeNames.*)',
+          notify: true
+        },
+
+        sharesCampaign: {
+          type: Boolean,
+          computed: '_computeSharesCampaign(_campaignTypeNames.*)',
+          notify: true
+        },
+
+        presaleCampaign: {
+          type: Boolean,
+          computed: '_computePresaleCampaign(_campaignTypeNames.*)',
+          notify: true
+        },
+
         status: {
           type: String,
-          computed: '_get_apiDataValue(_apiData.status)'
+          computed: '_getApiDataValue(_apiData.status)'
         },
 
         statusName: {
@@ -76,7 +94,7 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
 
         requiredFunding: {
           type: Number,
-          computed: '_get_apiDataValue(_apiData.requiredFunding)',
+          computed: '_getApiDataValue(_apiData.requiredFunding)',
           notify: true
         },
 
@@ -88,25 +106,25 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
 
         currentlyFunded: {
           type: Number,
-          computed: '_get_apiDataValue(_apiData.progressInEuros)',
+          computed: '_getApiDataValue(_apiData.progressInEuros)',
           notify: true
         },
 
         numberOfFunders: {
           type: Number,
-          computed: '_get_apiDataValue(_apiData.numberOfInvestors)',
+          computed: '_getApiDataValue(_apiData.numberOfInvestors)',
           notify: true
         },
 
         averageFunding: {
           type: Number,
-          computed: '_get_apiDataValue(_apiData.averageInvestment)',
+          computed: '_getApiDataValue(_apiData.averageInvestment)',
           notify: true
         },
 
         nominalInterestRate: {
           type: Number,
-          computed: '_get_apiDataValue(_apiData.returnOnInvestmentPercentage)',
+          computed: '_getApiDataValue(_apiData.returnOnInvestmentPercentage)',
           notify: true
         },
 
@@ -118,19 +136,25 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
 
         effectiveInterestRatePerYear: {
           type: Number,
-          computed: '_get_apiDataValue(_apiData.effectiveInterestRate)',
+          computed: '_getApiDataValue(_apiData.effectiveInterestRate)',
           notify: true
         },
 
         interestRateRefundTerms: {
           type: Number,
-          computed: '_get_apiDataValue(_apiData.paymentDuration)',
+          computed: '_getApiDataValue(_apiData.paymentDuration)',
           notify: true
         },
 
         blocked: {
           type: Boolean,
-          computed: '_get_apiDataValue(_apiData.campaignBlocked)',
+          computed: '_getApiDataValue(_apiData.campaignBlocked)',
+          notify: true
+        },
+
+        _campaignTypeNames: {
+          type: Array,
+          computed: '_computeCampaignTypeNames(_apiData.contractTypes.*)',
           notify: true
         },
 
@@ -142,10 +166,10 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
       },
 
       observers: [
-        '_get_apiData(apiEndpoint, campaignId)'
+        '_getApiData(apiEndpoint, campaignId)'
       ],
 
-      _get_apiData: function(apiEndpoint, campaignId) {
+      _getApiData: function(apiEndpoint, campaignId) {
         if(!apiEndpoint && campaignId) return;
         this.$.getCampaignStats.generateRequest();
       },
@@ -185,8 +209,35 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
         return (requiredFunding + overtekenen);
       },
 
-      _get_apiDataValue: function(_apiDataValue) {
-        return _apiDataValue;
+      _computeLoanCampaign(campaignTypeName) {
+        var campaignTypeNames = campaignTypeName.base;
+        if(!campaignTypeNames) return false;
+        return campaignTypeNames.indexOf('lening') !== -1;
+      },
+
+      _computeSharesCampaign: function(campaignTypeName) {
+        var campaignTypeNames = campaignTypeName.base;
+        if(!campaignTypeNames) return false;
+        return campaignTypeNames.indexOf('aandelen') !== -1;        
+      },
+
+      _computePresaleCampaign: function(campaignTypeName) {
+        var campaignTypeNames = campaignTypeName.base;
+        if(!campaignTypeNames) return false;
+        return campaignTypeNames.indexOf('voorverkoop') !== -1;        
+      },
+
+      _computeCampaignTypeNames: function(campaignType) {
+        var campaignTypes = campaignType.base;
+        if(!campaignTypes) return [];
+        var campaignTypeNames = campaignTypes.map(function(campaignType) {
+          return campaignType.name.toLowerCase();
+        })
+        return campaignTypeNames;
+      },
+
+      _getApiDataValue: function(apiDataValue) {
+        return apiDataValue;
       },
 
       _parseUnixDateToTime: function(unixDate) {
