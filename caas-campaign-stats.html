@@ -1,0 +1,203 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+
+<!--
+`caas-campaign-stats`
+Campaign Stats Data Element for Crowdfunding as a Service Solutions
+
+@demo demo/index.html 
+-->
+
+<dom-module id="caas-campaign-stats">
+  <template>
+
+    <iron-ajax
+      id="getCampaignStats"
+      url="[[apiEndpoint]]/campaigns/[[campaignId]]/stats"
+      handle-as="json"
+      method="GET"
+      last-response="{{apiData}}"
+      debounce-duration="3000"
+    ></iron-ajax>
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'caas-campaign-stats',
+
+      properties: {
+
+        apiEndpoint: {
+          type: String,
+          value: null
+        },
+
+        apiData: {
+          type: Object,
+          value: {}
+        },
+
+        campaignId: {
+          type: String,
+          value: null
+        },
+
+        status: {
+          type: String,
+          computed: '_getApiDataValue(apiData.status)'
+        },
+
+        statusName: {
+          type: String,
+          computed: '_computeStatusName(status)',
+          notify: true
+        },
+
+        startDate: {
+          type: Number,
+          computed: '_parseDateToTime(apiData.startDateTime)',
+          notify: true
+        },
+
+        endDate: {
+          type: Number,
+          computed: '_parseDateToTime(apiData.endDateTime)',
+          notify: true
+        },
+
+        daysLeft: {
+          type: Number,
+          computed: '_computeDaysLeft(endDate)',
+          notify: true         
+        },
+
+        lastRepaymentDate: {
+          type: Number,
+          computed: '_parseUnixDateToTime(apiData.finalPaymentDateTime)',
+          notify: true
+        },
+
+        requiredFunding: {
+          type: Number,
+          computed: '_getApiDataValue(apiData.requiredFunding)',
+          notify: true
+        },
+
+        maximumFunding: {
+          type: Number,
+          computed: '_computeMaximumFunding(requiredFunding, apiData.overtekenen)',
+          notify: true
+        },
+
+        currentlyFunded: {
+          type: Number,
+          computed: '_getApiDataValue(apiData.progressInEuros)',
+          notify: true
+        },
+
+        numberOfFunders: {
+          type: Number,
+          computed: '_getApiDataValue(apiData.numberOfInvestors)',
+          notify: true
+        },
+
+        averageFunding: {
+          type: Number,
+          computed: '_getApiDataValue(apiData.averageInvestment)',
+          notify: true
+        },
+
+        nominalInterestRate: {
+          type: Number,
+          computed: '_getApiDataValue(apiData.returnOnInvestmentPercentage)',
+          notify: true
+        },
+
+        nominalInterestRatePerYear: {
+          type: Number,
+          computed: '_computeNominalInterestRatePerYear(nominalInterestRate, interestRateRefundTerms)',
+          notify: true
+        },
+
+        effectiveInterestRatePerYear: {
+          type: Number,
+          computed: '_getApiDataValue(apiData.effectiveInterestRate)',
+          notify: true
+        },
+
+        interestRateRefundTerms: {
+          type: Number,
+          computed: '_getApiDataValue(apiData.paymentDuration)',
+          notify: true
+        },
+
+        blocked: {
+          type: Boolean,
+          computed: '_getApiDataValue(apiData.campaignBlocked)',
+          notify: true
+        }
+
+      },
+
+      observers: [
+        '_getApiData(apiEndpoint, campaignId)'
+      ],
+
+      _getApiData: function(apiEndpoint, campaignId) {
+        if(!apiEndpoint && campaignId) return;
+        this.$.getCampaignStats.generateRequest();
+      },
+
+      _computeStatusName: function(status) {
+        switch(status) {
+          case 0:
+            return 'draft';
+            break;
+          case 1:
+            return 'in-progress';
+            break;
+          case 2:
+          case 3:
+          case 4:
+            return 'success';
+            break;
+          default:
+            return 'closed';
+            break;
+        }
+      },
+
+      _computeDaysLeft: function(endDate) {
+        var oneDay = 24*60*60*1000;
+        var now = new Date().getTime();
+        var daysLeft = Math.round(Math.abs(now - endDate)/(oneDay));
+        return daysLeft;
+      },
+
+      _computeNominalInterestRatePerYear: function(nominalInterestRate, interestRateRefundTerms) {
+        var years = interestRateRefundTerms / 12;
+        return (nominalInterestRate / years);
+      },
+
+      _computeMaximumFunding: function(requiredFunding, overtekenen) {
+        return (requiredFunding + overtekenen);
+      },
+
+      _getApiDataValue: function(apiDataValue) {
+        return apiDataValue;
+      },
+
+      _parseUnixDateToTime: function(unixDate) {
+        var timeValue = parseInt(unixDate + '000');
+        return new Date(timeValue).getTime();
+      },
+
+      _parseDateToTime: function(dateValue) {
+        return new Date(dateValue).getTime();
+      }
+
+    });
+  </script>
+</dom-module>
