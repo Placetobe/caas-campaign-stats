@@ -1,6 +1,6 @@
 {
   "name": "caas-campaign-stats",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Campaign Stats Data Element for Crowdfunding as a Service Solutions",
   "main": "caas-campaign-stats.html",
   "authors": [
