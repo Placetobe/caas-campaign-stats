@@ -16,7 +16,7 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
       url="[[apiEndpoint]]/campaigns/[[campaignId]]/stats"
       handle-as="json"
       method="GET"
-      last-response="{{apiData}}"
+      last-response="{{_apiData}}"
       debounce-duration="3000"
     ></iron-ajax>
 
@@ -34,11 +34,6 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
           value: null
         },
 
-        apiData: {
-          type: Object,
-          value: {}
-        },
-
         campaignId: {
           type: String,
           value: null
@@ -46,7 +41,7 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
 
         status: {
           type: String,
-          computed: '_getApiDataValue(apiData.status)'
+          computed: '_get_apiDataValue(_apiData.status)'
         },
 
         statusName: {
@@ -57,13 +52,13 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
 
         startDate: {
           type: Number,
-          computed: '_parseDateToTime(apiData.startDateTime)',
+          computed: '_parseDateToTime(_apiData.startDateTime)',
           notify: true
         },
 
         endDate: {
           type: Number,
-          computed: '_parseDateToTime(apiData.endDateTime)',
+          computed: '_parseDateToTime(_apiData.endDateTime)',
           notify: true
         },
 
@@ -75,43 +70,43 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
 
         lastRepaymentDate: {
           type: Number,
-          computed: '_parseUnixDateToTime(apiData.finalPaymentDateTime)',
+          computed: '_parseUnixDateToTime(_apiData.finalPaymentDateTime)',
           notify: true
         },
 
         requiredFunding: {
           type: Number,
-          computed: '_getApiDataValue(apiData.requiredFunding)',
+          computed: '_get_apiDataValue(_apiData.requiredFunding)',
           notify: true
         },
 
         maximumFunding: {
           type: Number,
-          computed: '_computeMaximumFunding(requiredFunding, apiData.overtekenen)',
+          computed: '_computeMaximumFunding(requiredFunding, _apiData.overtekenen)',
           notify: true
         },
 
         currentlyFunded: {
           type: Number,
-          computed: '_getApiDataValue(apiData.progressInEuros)',
+          computed: '_get_apiDataValue(_apiData.progressInEuros)',
           notify: true
         },
 
         numberOfFunders: {
           type: Number,
-          computed: '_getApiDataValue(apiData.numberOfInvestors)',
+          computed: '_get_apiDataValue(_apiData.numberOfInvestors)',
           notify: true
         },
 
         averageFunding: {
           type: Number,
-          computed: '_getApiDataValue(apiData.averageInvestment)',
+          computed: '_get_apiDataValue(_apiData.averageInvestment)',
           notify: true
         },
 
         nominalInterestRate: {
           type: Number,
-          computed: '_getApiDataValue(apiData.returnOnInvestmentPercentage)',
+          computed: '_get_apiDataValue(_apiData.returnOnInvestmentPercentage)',
           notify: true
         },
 
@@ -123,29 +118,34 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
 
         effectiveInterestRatePerYear: {
           type: Number,
-          computed: '_getApiDataValue(apiData.effectiveInterestRate)',
+          computed: '_get_apiDataValue(_apiData.effectiveInterestRate)',
           notify: true
         },
 
         interestRateRefundTerms: {
           type: Number,
-          computed: '_getApiDataValue(apiData.paymentDuration)',
+          computed: '_get_apiDataValue(_apiData.paymentDuration)',
           notify: true
         },
 
         blocked: {
           type: Boolean,
-          computed: '_getApiDataValue(apiData.campaignBlocked)',
+          computed: '_get_apiDataValue(_apiData.campaignBlocked)',
           notify: true
+        },
+
+        _apiData: {
+          type: Object,
+          value: {}
         }
 
       },
 
       observers: [
-        '_getApiData(apiEndpoint, campaignId)'
+        '_get_apiData(apiEndpoint, campaignId)'
       ],
 
-      _getApiData: function(apiEndpoint, campaignId) {
+      _get_apiData: function(apiEndpoint, campaignId) {
         if(!apiEndpoint && campaignId) return;
         this.$.getCampaignStats.generateRequest();
       },
@@ -185,8 +185,8 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
         return (requiredFunding + overtekenen);
       },
 
-      _getApiDataValue: function(apiDataValue) {
-        return apiDataValue;
+      _get_apiDataValue: function(_apiDataValue) {
+        return _apiDataValue;
       },
 
       _parseUnixDateToTime: function(unixDate) {
