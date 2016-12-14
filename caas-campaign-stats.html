@@ -39,32 +39,14 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
           value: null
         },
 
-        loanCampaign: {
-          type: Boolean,
-          computed: '_computeLoanCampaign(_campaignTypeNames.*)',
-          notify: true
-        },
-
-        sharesCampaign: {
-          type: Boolean,
-          computed: '_computeSharesCampaign(_campaignTypeNames.*)',
-          notify: true
-        },
-
-        presaleCampaign: {
-          type: Boolean,
-          computed: '_computePresaleCampaign(_campaignTypeNames.*)',
-          notify: true
-        },
-
         status: {
           type: String,
           computed: '_getApiDataValue(_apiData.status)'
         },
 
-        statusName: {
+        statusLabel: {
           type: String,
-          computed: '_computeStatusName(status)',
+          computed: '_computeStatusLabel(status)',
           notify: true
         },
 
@@ -160,13 +142,25 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
 
         closed: {
           type: Boolean,
+          computed: '_computeClosed(status)',
+          notify: true
+        },
+
+        blocked: {
+          type: Boolean,
           computed: '_getApiDataValue(_apiData.campaignBlocked)',
           notify: true
         },
 
-        _campaignTypeNames: {
+        categories: {
+          type: Object,
+          computed: '_computeCategories(_apiData.contractTypes.*)',
+          notify: true
+        },
+
+        labels: {
           type: Array,
-          computed: '_computeCampaignTypeNames(_apiData.contractTypes.*)',
+          computed: '_computeLabels(_apiData.contractTypes.*)',
           notify: true
         },
 
@@ -186,29 +180,34 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
         this.$.getCampaignStats.generateRequest();
       },
 
-      _computeStatusName: function(status) {
+      _computeStatusLabel: function(status) {
         switch(status) {
           case 0:
-            return 'draft';
+            return 'in voorbereiding';
             break;
           case 1:
-            return 'in-progress';
+            return 'actief';
             break;
           case 2:
           case 3:
           case 4:
-            return 'success';
+            return 'geslaagd';
             break;
           default:
-            return 'closed';
+            return 'gesloten';
             break;
         }
       },
 
-      _computeDaysLeft: function(endDate) {
+      _computeClosed: function(status) {
+        return (status !== 1);
+      },
+
+      _computeDaysLeft: function(endTime) {
         var oneDay = 24*60*60*1000;
         var now = new Date().getTime();
-        var daysLeft = Math.round(Math.abs(now - endDate)/(oneDay));
+        if(now >= endTime) return 0;
+        var daysLeft = Math.ceil(Math.abs(now - endTime)/(oneDay));
         return daysLeft;
       },
 
@@ -221,31 +220,50 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
         return (requiredFunding + overtekenen);
       },
 
-      _computeLoanCampaign(campaignTypeName) {
-        var campaignTypeNames = campaignTypeName.base;
-        if(!campaignTypeNames) return false;
-        return campaignTypeNames.indexOf('lening') !== -1;
-      },
-
-      _computeSharesCampaign: function(campaignTypeName) {
-        var campaignTypeNames = campaignTypeName.base;
-        if(!campaignTypeNames) return false;
-        return campaignTypeNames.indexOf('aandelen') !== -1;        
-      },
-
-      _computePresaleCampaign: function(campaignTypeName) {
-        var campaignTypeNames = campaignTypeName.base;
-        if(!campaignTypeNames) return false;
-        return campaignTypeNames.indexOf('voorverkoop') !== -1;        
-      },
-
-      _computeCampaignTypeNames: function(campaignType) {
+      _computeCategories: function(campaignType) {
         var campaignTypes = campaignType.base;
         if(!campaignTypes) return [];
-        var campaignTypeNames = campaignTypes.map(function(campaignType) {
+        var categories = campaignTypes.map(function(campaignType) {
           return campaignType.name.toLowerCase();
         })
-        return campaignTypeNames;
+        return {
+          presale: categories.indexOf('voorverkoop') !== -1,
+          shares: categories.indexOf('aandelen') !== -1,
+          loan: categories.indexOf('lening') !== -1,
+        }
+      },
+
+      _computeLabels: function(campaignType) {
+        var campaignTypes = campaignType.base;
+        if(!campaignTypes) return [];
+        var labels = campaignTypes.map((function(campaignType) {
+          return this._getCampaignTypeNameById(campaignType.id);
+        }).bind(this))
+        return labels;
+      },
+
+      _getCampaignTypeNameById: function(campaignTypeId) {
+        var campaignTypeName;
+        switch(campaignTypeId) {
+          case 1:
+          case 2:
+            campaignTypeName = 'voorverkoop';
+          case 3:
+          case 4:
+            campaignTypeName = 'lening';
+            break;
+          case 5:
+          case 6:
+            campaignTypeName = 'aandelen';
+            break;
+          case 7:
+            campaignTypeName = 'lineaire lening';
+            break;
+          case 8:
+            campaignTypeName = 'annuitaire lening';
+            break;
+        }
+        return campaignTypeName;
       },
 
       _computeStarted: function(status) {
