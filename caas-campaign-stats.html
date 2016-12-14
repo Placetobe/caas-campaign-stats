@@ -146,6 +146,18 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
           notify: true
         },
 
+        started: {
+          type: Boolean,
+          computed: '_computeStarted(_apiData.status)',
+          notify: true
+        },
+
+        running: {
+          type: Boolean,
+          computed: '_computeRunning(_apiData.status)',
+          notify: true
+        },
+
         closed: {
           type: Boolean,
           computed: '_getApiDataValue(_apiData.campaignBlocked)',
@@ -234,6 +246,14 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
           return campaignType.name.toLowerCase();
         })
         return campaignTypeNames;
+      },
+
+      _computeStarted: function(status) {
+        return (parseInt(status) !== 0);
+      },
+
+      _computeRunning: function(status) {
+        return (parseInt(status) === 1);
       },
 
       _getApiDataValue: function(apiDataValue) {
