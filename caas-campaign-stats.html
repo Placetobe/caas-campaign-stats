@@ -13,11 +13,12 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
 
     <iron-ajax
       id="getCampaignStats"
-      url="[[apiEndpoint]]/campaigns/[[campaignId]]/stats"
+      url="[[apiEndpoint]]campaigns/[[campaignId]]/stats"
       handle-as="json"
+      auto="[[campaignId]]"
       method="GET"
       last-response="{{_apiData}}"
-      debounce-duration="3000"
+      
     ></iron-ajax>
 
   </template>
@@ -36,7 +37,7 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
 
         campaignId: {
           type: String,
-          value: null
+          notify: true
         },
 
         status: {
@@ -174,6 +175,14 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
       observers: [
         '_getApiData(apiEndpoint, campaignId)'
       ],
+
+      getRequestHeaders: function (method, route, auth) {
+        if (!auth) return {};
+        return {
+            'authorization': 'Bearer ' + this.accessToken,
+            'activeRole': this.activeRole
+        };
+      },
 
       _getApiData: function(apiEndpoint, campaignId) {
         if(!apiEndpoint && campaignId) return;
