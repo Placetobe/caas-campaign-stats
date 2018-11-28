@@ -107,13 +107,13 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
 
         nominalInterestRate: {
           type: Number,
-          computed: '_getApiDataValue(_apiData.returnOnInvestmentPercentage)',
+          computed: '_computeNominalInterestRate(_apiData.returnOnInvestmentPercentage, interestRateRefundTerms)',
           notify: true
         },
 
         nominalInterestRatePerYear: {
           type: Number,
-          computed: '_computeNominalInterestRatePerYear(nominalInterestRate, interestRateRefundTerms)',
+          computed: '_getApiDataValue(_apiData.returnOnInvestmentPercentage)',
           notify: true
         },
 
@@ -220,9 +220,9 @@ Campaign Stats Data Element for Crowdfunding as a Service Solutions
         return daysLeft;
       },
 
-      _computeNominalInterestRatePerYear: function(nominalInterestRate, interestRateRefundTerms) {
+      _computeNominalInterestRate: function(nominalInterestRate, interestRateRefundTerms) {
         var years = interestRateRefundTerms / 12;
-        return (nominalInterestRate / years);
+        return (nominalInterestRate * years);
       },
 
       _computeMaximumFunding: function(requiredFunding, overtekenen) {
